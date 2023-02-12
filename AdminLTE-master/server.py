@@ -94,6 +94,10 @@ def logout():
         return redirect(url_for("login")) # go to login page
 
 
+@app.route("/forgot-password")
+def forgot():
+    return render_template("forgot-password.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
 
