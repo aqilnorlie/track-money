@@ -1,0 +1,55 @@
+
+ <!-- Main Sidebar Container -->
+ <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="{{url_for('dashboard')}}" class="brand-link">
+      <img src="../../static/img/money.jpg" alt="track money Logo" class="brand-image img-circle elevation-1" style="opacity: .8 ">
+      <span class="brand-text font-weight-light">Track Money</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="info">
+          <a href="{{url_for('dashboard')}}" class="d-block"><i class="nav-icon fas fa-user"></i> Welcome {{ username }} !!</a>
+        </div>
+      </div>
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item">
+            <a id="dash" href="{{url_for('dashboard')}}" class="nav-link active">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard 
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a id="general" href="{{url_for('get_general')}}" class="nav-link">
+              <i class="nav-icon fas fa-money-bill-alt "></i>
+              <p>
+                Spend
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a id="general" href="{{url_for('logout')}}" class="nav-link">
+              <i class="nav-icon fas fa-sign-out-alt "></i>
+              <p>
+                LogOut
+              </p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+    <script src="../static/plugins/jquery/jquery.min.js"></script>
+    <script src="../static/js/sidebar.js"></script>
+  </aside>
+  
