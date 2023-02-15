@@ -1,15 +1,15 @@
-from flask import Flask, render_template, request, session, redirect, url_for
-from flask_mysqldb import MySQL
-import requests
+from flask import render_template, request, session, redirect, url_for
+from MyEmail import MyEmail
+from _init_ import create_app
 import os
 import json
+from flask_mysqldb import MySQL
+import random
+import string
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("secret_key")
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = os.environ.get("mysql_pass")
-app.config["MYSQL_DB"] = "lookmoney"
-mysql = MySQL(app)  
+
+app = create_app()
+db = MySQL(app)
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -19,7 +19,7 @@ def login():
     if request.method == "POST":
         email = request.form["email"] # get data from email input
         password = request.form["password"] # get data from password input
-        cur = mysql.connection.cursor()
+        cur = db.connection.cursor()
         query = "SELECT username FROM user WHERE email = %s AND password = md5(%s)"
         user_info = cur.execute(query, (email, password))
 
@@ -40,7 +40,7 @@ def register():
         name = insert_data["username"]
         email = insert_data["email"]
         password = insert_data["password"]
-        cur = mysql.connection.cursor()
+        cur = db.connection.cursor()
         query = "SELECT email FROM user"
         username_all = cur.execute(query)
 
@@ -49,13 +49,13 @@ def register():
             for user_email in detail:
                 if email in user_email: # check existing data
                     return json.dumps({'data': 'fail'}), 200, {'ContentType': 'application/json'} # send back through AJAX (FAIL)
-            cur = mysql.connection.cursor()
+            cur = db.connection.cursor()
             cur.execute("INSERT INTO user (username, password, email) VALUES (%s, MD5(%s), %s)", (name, password, email))
             cur.connection.commit()
             cur.close()
             return json.dumps({'data': 'sucess'}), 200, {'ContentType': 'application/json'}  # send back through AJAX (SUCESS)
         else:
-            cur = mysql.connection.cursor()
+            cur = db.connection.cursor()
             cur.execute("INSERT INTO user (username, password, email) VALUES (%s, MD5(%s), %s)", (name, password, email))
             cur.connection.commit()
             cur.close()
@@ -75,7 +75,7 @@ def dashboard():
 @app.route("/general")
 def get_general():
     if "username" in session: # check username in session
-        cur = mysql.connection.cursor()
+        cur = db.connection.cursor()
         query = "SELECT category_name FROM category"
         category = cur.execute(query)
         category_all = None
@@ -94,8 +94,14 @@ def logout():
         return redirect(url_for("login")) # go to login page
 
 
-@app.route("/forgot-password")
+@app.route("/forgot-password", methods=["GET", "POST"])
 def forgot():
+
+    if request.method == "POST":
+        request_email = request.form['email']
+        smtp = MyEmail(request_email)
+        smtp.email_generate()
+
     return render_template("forgot-password.html")
 
 if __name__ == "__main__":
