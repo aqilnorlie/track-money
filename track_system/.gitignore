@@ -2,6 +2,7 @@
 *.DS_Store
 *.log
 
+
 # Archives
 *.zip
 
@@ -67,5 +68,6 @@ bower_components/
 # ETC
 TODO
 test.html
+sendgrid.env
 ad.js
 /.cache/
