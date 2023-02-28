@@ -1,11 +1,8 @@
-from flask import render_template, request, session, redirect, url_for
+from flask import render_template, request, session, redirect, url_for, jsonify
 from MyEmail import MyEmail
 from _init_ import create_app
-import os
 import json
 from flask_mysqldb import MySQL
-import random
-import string
 
 
 app = create_app()
@@ -20,13 +17,14 @@ def login():
         email = request.form["email"] # get data from email input
         password = request.form["password"] # get data from password input
         cur = db.connection.cursor()
-        query = "SELECT username FROM user WHERE email = %s AND password = md5(%s)"
+        query = "SELECT username, id FROM user WHERE email = %s AND password = md5(%s)"
         user_info = cur.execute(query, (email, password))
 
         if user_info > 0:
             detail = cur.fetchall()
             for i in detail:
                 session['username'] = i[0] # insert name into session
+                session['id'] = i[1]
             return redirect(url_for("dashboard"))
 
     return render_template("login.html")
@@ -96,7 +94,6 @@ def logout():
 
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot():
-
     if request.method == "POST":
         request_email = request.form['email']
         smtp = MyEmail(request_email)
@@ -104,6 +101,64 @@ def forgot():
 
     return render_template("forgot-password.html")
 
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if request.method == "POST":
+        action = request.form['action']
+        if action == "get_user_detail":
+            password = request.form["password"]
+            cur = db.connection.cursor()
+            query = "SELECT username, email, password from user where password = md5(%s)"
+            cur.execute(query,(password,))
+            user_detail = cur.fetchall()
+            if user_detail:
+                for data in user_detail:
+                    username = data[0]
+                    email = data[1]
+                user_dict = {"username" : username, "email" : email}
+                return json.dumps({'data': user_dict}), 200, {'ContentType': 'application/json'}
+            else:
+                return json.dumps({'data': "error"}), 200, {'ContentType': 'application/json'}
+
+        if action == "update_data":
+            data_user = request.form["data"]
+            update_data = json.loads(data_user)
+            if update_data['password'] ==  "":
+                cur = db.connection.cursor()
+                query = "UPDATE user set username = %s, email = %s where id = %s"
+                cur.execute(query, (update_data['username'], update_data['email'], session['id']))
+                cur.connection.commit()
+                cur.close()
+                session['username'] = update_data['username']
+                return json.dumps({'status': 'save'}), 200, {'ContentType': 'application/json'}
+                
+            else:
+                cur = db.connection.cursor()
+                query = "UPDATE user set username = %s, email = %s , password = MD5(%s) where id = %s"
+                cur.execute(query, (update_data['username'], update_data['email'], update_data['password'], session['id']))
+                cur.connection.commit()
+                cur.close()
+                session['username'] = update_data['username']
+                return json.dumps({'status': 'save'}), 200, {'ContentType': 'application/json'}
+
+            
+
+    if "username" in session:
+        cur = db.connection.cursor()
+        id_user = session['id']
+        query = "SELECT username, email FROM user where id = %s"
+        cur.execute(query, (id_user,))
+        data_all = cur.fetchall()
+
+        if data_all:
+            data = data_all
+        else:
+            data = None
+        return render_template("profile.html", username=session['username'], data=data)
+    else:
+        return redirect(url_for("login"))
+
+    
 if __name__ == "__main__":
     app.run(debug=True)
 

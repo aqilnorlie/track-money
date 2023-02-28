@@ -13,7 +13,6 @@ class MyEmail:
     def email_generate(self):
         app = create_app()
         db = MySQL(app)
-
         cur = db.connection.cursor()
         query = "SELECT username FROM user WHERE email = %s"
         user_info = cur.execute(query, ([self.receiver]))
